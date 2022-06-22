@@ -20,47 +20,31 @@ def test_mapper_keys():
     mapper = _get_json_mapper("sample_1.json")
 
     expected_keys = {tuple(), ("food",), ("bird",)}
-    actual_keys = mapper.all_positions.keys()
+    actual_keys = mapper.offsets.keys()
     assert actual_keys == expected_keys
 
 
 def test_root_offset():
     mapper = _get_json_mapper("sample_1.json")
 
-    root = mapper.all_positions[tuple()]
-    assert root.start_position == 0
-    assert root.end_position == 44
-    assert root.start_line == 0
-    assert root.start_col == 0
-    assert root.end_line == 3
-    assert root.end_col == 1
-
-
-def test_root_offset_editor():
-    mapper = _get_json_mapper("sample_1.json")
-    root = mapper.all_positions[tuple()].editor_positions
-
-    assert root.start_position == 1
-    assert root.end_position == 44
-    assert root.start_line == 1
-    assert root.start_col == 1
-    assert root.end_line == 4
-    assert root.end_col == 1
+    root = mapper.offsets[tuple()]
+    assert root.start == 0
+    assert root.end == 44
 
 
 def test_pie_offset():
     mapper = _get_json_mapper("sample_1.json")
 
     # The value is "pie"
-    food = mapper.all_positions[("food",)]
-    assert food.start_position == 14
-    assert food.end_position == 19
+    food = mapper.offsets[("food",)]
+    assert food.start == 14
+    assert food.end == 19
 
 
 def _get_reflexive_tests(file_name: str):
     mapper = _get_json_mapper(CURRENT_DIR / file_name)
 
-    for key in mapper.all_positions:
+    for key in mapper.offsets:
         yield mapper, key
 
 
@@ -76,9 +60,9 @@ def test_reflexive(mapper: JSONMapper, key: Tuple):
         key = remaining_path[0]
         return _get_value(node[key], remaining_path[1:])
 
-    position = mapper.all_positions[key]
+    position = mapper.offsets[key]
     expected_value = _get_value(mapper.data, key)
-    json_str = mapper.json_str[position.start_position : position.end_position]
+    json_str = mapper.json_str[position.start : position.end]
     sub_data = json.loads(json_str)
 
     assert sub_data == expected_value

@@ -10,38 +10,9 @@ from json_stream.base import TransientStreamingJSONObject, TransientStreamingJSO
 
 
 @dataclass
-class Position:
-    start_position: int
-    start_line: int
-    start_col: int
-    end_position: int
-    end_line: int
-    end_col: int
-
-    for_editor: bool = False
-
-    @cached_property
-    def editor_positions(self):
-        """The editor positions use the common mechanics for highlighting
-        ranges in editors. All indexes become 1 based and the end becomes
-        inclusive.
-        """
-
-        if self.for_editor:
-            return self
-
-        return Position(
-            start_position=self.start_position + 1,
-            start_line=self.start_line + 1,
-            start_col=self.start_col + 1,
-            # Our end positions were non-inclusive.
-            # Editor positions are inclusive.
-            # The two cancel each other out and we can return the original values
-            end_position=self.end_position,
-            # Ignore the above since a line is an intermediary calculated value
-            end_line=self.end_line + 1,
-            end_col=self.end_col,
-        )
+class Offset:
+    start: int
+    end: int
 
 
 class JSONMapper:
@@ -52,26 +23,21 @@ class JSONMapper:
         self._io = io
 
     @cached_property
-    def all_positions(self) -> Dict[Tuple, Position]:
-        out: Dict[Tuple, Position] = {}
+    def offsets(self) -> Dict[Tuple, Offset]:
+        out: Dict[Tuple, Offset] = {}
 
         for key, start, end in self._get_key_positions_ranges:
-            start_line, start_col = self._get_line_col_for_position(start)
-            end_line, end_col = self._get_line_col_for_position(end - 1)
-
-            out[key] = Position(
-                start_position=start,
-                start_line=start_line,
-                start_col=start_col,
-                end_position=end,
-                end_line=end_line,
-                end_col=end_col,
+            out[key] = Offset(
+                start=start,
+                end=end,
             )
 
         return out
 
     @cached_property
     def data(self) -> Any:
+        """Get the referenced JSON object"""
+
         self._reset_io()
         return json.load(self._io)
 
@@ -160,11 +126,14 @@ class JSONMapper:
 
     def _get_line_col_for_position(self, position: int) -> Tuple[int, int]:
         line_number = self._get_line_for_position(position)
-        line_offset = self._line_break_positions[line_number]
+        line_start = self._line_break_positions[line_number - 1] + 1
+
+        if position == 0:
+            return 0, 0
 
         # We are using slice mechanics where ends are not inclusive,
         # so we need to increment by 1
-        col = position - line_offset + 1
+        col = position - line_start
         return line_number, col
 
     def _get_line_for_position(self, position: int) -> int:
