@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import json
 from typing import IO, Any, Dict, List, Set, Tuple, Iterable, Union
 from functools import cached_property
+from bisect import bisect_left
 
 import json_stream
 from json_stream.base import TransientStreamingJSONObject, TransientStreamingJSONList
@@ -50,7 +51,8 @@ class Position:
         """One based inclusive end column"""
 
         # Going from zero based non-inclusive to one based i
-        # inclusive is a noop and thus there is no change
+        # inclusive is a noop and thus there is no change.
+        # It is included only for API consistency
         return self.end_col
 
 
@@ -185,18 +187,13 @@ class JSONMapper:
     def _get_line_for_position(self, position: int) -> int:
         """Get just the line for a given position"""
 
-        line_breaks = self._line_break_positions
-
         # We need to use price is right minus one rules - find the
-        # highest number line break that is *less than* the given position
+        # highest number line break that is *less than* the given position.
+        # As luck would happen, the bisect module can do almost exactly this already.
 
-        # TODO: This is the naive approach that runs in O(n) time.
-        # It can be substituted with an approach that treats the
-        # list of line break positions as a binary tree and keeps
-        # bifurcating the list to run in O(log n) time
+        # If the position we are searching for is beyond the bound
+        # of our list, bisect will give me back an index beyond the list.
+        # This is used to bound it to within the appropriate values.
+        last_index = len(self._line_break_positions) - 1
 
-        for i, break_position in enumerate(line_breaks):
-            if break_position > position:
-                return i
-
-        return len(line_breaks) - 1
+        return bisect_left(self._line_break_positions, position, hi=last_index)
