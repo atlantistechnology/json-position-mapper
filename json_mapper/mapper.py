@@ -31,7 +31,7 @@ class JSONMapper:
 
         for key, start, end in self._get_key_positions_ranges:
             start_line, start_col = self._get_line_col_for_position(start)
-            end_line, end_col = self._get_line_col_for_position(end)
+            end_line, end_col = self._get_line_col_for_position(end - 1)
 
             out[key] = Position(
                 start_position=start,
@@ -113,7 +113,11 @@ class JSONMapper:
         return list(recurse(root))
 
     def _get_line_col_for_position(self, position: int) -> Tuple[int, int]:
-        pass
+        line_number = self._get_line_for_position(position)
+        line_offset = self._line_break_positions[line_number]
+
+        col = position - line_offset
+        return line_number, col
 
     def _get_line_for_position(self, position: int) -> int:
         """Get just the line for a given position"""
