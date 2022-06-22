@@ -1,7 +1,8 @@
 """Library that allows mapping from a file-like object to JSON offsets"""
 
 from dataclasses import dataclass
-from typing import IO, Dict, List, Set, Tuple, Iterable, Union
+import json
+from typing import IO, Any, Dict, List, Set, Tuple, Iterable, Union
 from functools import cached_property
 
 import json_stream
@@ -45,6 +46,18 @@ class JSONMapper:
         return out
 
     @cached_property
+    def data(self) -> Any:
+        self._reset_io()
+        return json.load(self._io)
+
+    @cached_property
+    def json_str(self) -> str:
+        """Get the entire underlying io string, generally for testing"""
+
+        self._reset_io()
+        return self._io.read()
+
+    @cached_property
     def _line_break_positions(self) -> List[int]:
         self._reset_io()
 
@@ -86,7 +99,16 @@ class JSONMapper:
                     yield from recurse(elem)
 
             elif isinstance(node, str):
-                start_offset -= len(node)
+                # We want to include the quotes so that we have parity
+                # mechanics with things like objects. The off-by-one issues
+                # have been handled.
+                start_offset -= len(node) + 1
+
+            elif isinstance(node, bool):
+                if node:
+                    start_offset -= len("true") - 1
+                else:
+                    start_offset -= len("false") - 1
 
             elif isinstance(node, int):
                 end_offset -= 1
@@ -96,9 +118,8 @@ class JSONMapper:
                 end_offset -= 1
                 start_offset -= len(str(node))
 
-            elif isinstance(node, bool):
-                end_offset -= 1
-                start_offset -= len(str(node))
+            elif node is None:
+                start_offset -= len("null")
 
             else:
                 # I don't think JSON has any kinds aside from those
