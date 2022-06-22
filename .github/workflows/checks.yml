@@ -26,7 +26,7 @@ jobs:
         run: black --check --diff .
 
   mypy:
-    name: MyPy
+    name: Mypy
     runs-on: ubuntu-latest
     env:
       POETRY_VIRTUALENVS_CREATE: false
