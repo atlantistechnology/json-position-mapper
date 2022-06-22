@@ -27,6 +27,32 @@ class Position:
     end_line: int
     end_col: int
 
+    @property
+    def editor_start_line(self) -> int:
+        """One based inclusive start line"""
+
+        return self.start_line + 1
+
+    @property
+    def editor_start_col(self) -> int:
+        """One based inclusive start column"""
+
+        return self.start_col + 1
+
+    @property
+    def editor_end_line(self) -> int:
+        """One based inclusive end line"""
+
+        return self.end_line + 1
+
+    @property
+    def editor_end_col(self) -> int:
+        """One based inclusive end column"""
+
+        # Going from zero based non-inclusive to one based i
+        # inclusive is a noop and thus there is no change
+        return self.end_col
+
 
 class JSONMapper:
     def __init__(self, io: IO):

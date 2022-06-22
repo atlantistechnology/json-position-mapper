@@ -85,3 +85,12 @@ def test_pie_positions():
     actual_position = mapper.get_position(("food",))
     expected_position = Position(1, 12, 1, 17)
     assert actual_position == expected_position
+
+
+def test_pie_editor_position():
+    mapper = _get_json_mapper("sample_1.json")
+    position = mapper.get_position(("food",))
+    assert position.editor_start_line == 2
+    assert position.editor_start_col == 13
+    assert position.editor_end_line == 2
+    assert position.editor_end_col == 17
