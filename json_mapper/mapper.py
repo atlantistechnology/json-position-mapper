@@ -194,6 +194,6 @@ class JSONMapper:
         # If the position we are searching for is beyond the bound
         # of our list, bisect will give me back an index beyond the list.
         # This is used to bound it to within the appropriate values.
-        last_index = len(self._line_break_positions) - 1
+        max_index = len(self._line_break_positions) - 1
 
-        return bisect_left(self._line_break_positions, position, hi=last_index)
+        return bisect_left(self._line_break_positions, position, hi=max_index)
