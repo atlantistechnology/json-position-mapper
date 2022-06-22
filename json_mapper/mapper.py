@@ -18,6 +18,31 @@ class Position:
     end_line: int
     end_col: int
 
+    for_editor: bool = False
+
+    @cached_property
+    def editor_positions(self):
+        """The editor positions use the common mechanics for highlighting
+        ranges in editors. All indexes become 1 based and the end becomes
+        inclusive.
+        """
+
+        if self.for_editor:
+            return self
+
+        return Position(
+            start_position=self.start_position + 1,
+            start_line=self.start_line + 1,
+            start_col=self.start_col + 1,
+            # Our end positions were non-inclusive.
+            # Editor positions are inclusive.
+            # The two cancel each other out and we can return the original values
+            end_position=self.end_position,
+            # Ignore the above since a line is an intermediary calculated value
+            end_line=self.end_line + 1,
+            end_col=self.end_col,
+        )
+
 
 class JSONMapper:
     def __init__(self, io: IO):

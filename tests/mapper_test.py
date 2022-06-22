@@ -36,6 +36,18 @@ def test_root_offset():
     assert root.end_col == 1
 
 
+def test_root_offset_editor():
+    mapper = _get_json_mapper("sample_1.json")
+    root = mapper.all_positions[tuple()].editor_positions
+
+    assert root.start_position == 1
+    assert root.end_position == 44
+    assert root.start_line == 1
+    assert root.start_col == 1
+    assert root.end_line == 4
+    assert root.end_col == 1
+
+
 def test_pie_offset():
     mapper = _get_json_mapper("sample_1.json")
 
