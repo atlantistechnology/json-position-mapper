@@ -95,3 +95,11 @@ def test_pie_editor_position():
     assert position.editor_start_col == 13
     assert position.editor_end_line == 2
     assert position.editor_end_col == 17
+
+
+def test_invalid_json():
+    sample_io = StringIO("{{")
+    mapper = JSONMapper(sample_io)
+
+    with pytest.raises(ValueError):
+        mapper.offsets
