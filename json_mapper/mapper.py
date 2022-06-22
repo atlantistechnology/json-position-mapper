@@ -1,8 +1,7 @@
 """Library that allows mapping from a file-like object to JSON offsets"""
 
-from dataclasses import dataclass
 import json
-from typing import IO, Any, Dict, List, Set, Tuple, Iterable, Union
+from typing import IO, Any, Dict, List, Set, Tuple, Iterable, Union, NamedTuple
 from functools import cached_property
 from bisect import bisect_left
 
@@ -12,14 +11,12 @@ from json_stream.base import TransientStreamingJSONObject, TransientStreamingJSO
 JSONKeyTuple = Tuple
 
 
-@dataclass(frozen=True)
-class Offset:
+class Offset(NamedTuple):
     start: int
     end: int
 
 
-@dataclass(frozen=True)
-class Position:
+class Position(NamedTuple):
     """The default values in positions are designed to be zero based
     with non-inclusive ends to match Python's slice mechanics"""
 
