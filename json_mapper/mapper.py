@@ -9,7 +9,7 @@ import json_stream
 from json_stream.base import TransientStreamingJSONObject, TransientStreamingJSONList
 
 
-@dataclass
+@dataclass(frozen=True)
 class Offset:
     start: int
     end: int
@@ -24,33 +24,23 @@ class JSONMapper:
 
     @cached_property
     def offsets(self) -> Dict[Tuple, Offset]:
-        out: Dict[Tuple, Offset] = {}
+        return {key: offset for key, offset in self._scan_json()}
 
-        for key, start, end in self._get_key_positions_ranges:
-            out[key] = Offset(
-                start=start,
-                end=end,
-            )
-
-        return out
-
-    @cached_property
-    def data(self) -> Any:
+    def get_json_data(self) -> Any:
         """Get the referenced JSON object"""
 
-        self._reset_io()
+        self._io.seek(0)
         return json.load(self._io)
 
-    @cached_property
-    def json_str(self) -> str:
+    def read(self) -> str:
         """Get the entire underlying io string, generally for testing"""
 
-        self._reset_io()
+        self._io.seek(0)
         return self._io.read()
 
     @cached_property
     def _line_break_positions(self) -> List[int]:
-        self._reset_io()
+        self._io.seek(0)
 
         out: List[int] = []
         line = self._io.readline()
@@ -59,18 +49,17 @@ class JSONMapper:
             line = self._io.readline()
         return out
 
-    @cached_property
-    def _get_key_positions_ranges(self) -> List[Tuple[Tuple, int, int]]:
+    def _scan_json(self) -> Iterable[Tuple[Tuple, Offset]]:
         """Get every tuple key in the file, along with its start and end"""
 
-        self._reset_io()
+        self._io.seek(0)
 
-        root = json_stream.load(self._io)
+        stream_root = json_stream.load(self._io)
         # Where we are in the JSON file. Keys can be none (for the root),
         # strings for objects, or ints for arrays
         current_path: List[Union[None, str, int]] = [None]
 
-        def recurse(node) -> Iterable[Tuple[Tuple, int, int]]:
+        def recurse(node) -> Iterable[Tuple[Tuple, Offset]]:
             # Note that file positions are 1 based
             started_at = self._io.tell()
 
@@ -119,10 +108,13 @@ class JSONMapper:
             ended_at = self._io.tell()
 
             key = tuple(current_path[1:])
-            yield key, started_at + start_offset, ended_at + end_offset
+            yield key, Offset(
+                start=(started_at + start_offset),
+                end=(ended_at + end_offset),
+            )
             current_path.pop()
 
-        return list(recurse(root))
+        return recurse(stream_root)
 
     def _get_line_col_for_position(self, position: int) -> Tuple[int, int]:
         line_number = self._get_line_for_position(position)
@@ -160,6 +152,3 @@ class JSONMapper:
             line_no -= 1
 
         return line_no
-
-    def _reset_io(self):
-        self._io.seek(0)

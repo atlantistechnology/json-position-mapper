@@ -60,9 +60,12 @@ def test_reflexive(mapper: JSONMapper, key: Tuple):
         key = remaining_path[0]
         return _get_value(node[key], remaining_path[1:])
 
+    json_data = mapper.get_json_data()
+    file_data = mapper.read()
+
     position = mapper.offsets[key]
-    expected_value = _get_value(mapper.data, key)
-    json_str = mapper.json_str[position.start : position.end]
+    expected_value = _get_value(json_data, key)
+    json_str = file_data[position.start : position.end]
     sub_data = json.loads(json_str)
 
     assert sub_data == expected_value
