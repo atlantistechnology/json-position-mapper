@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import pytest
-from json_mapper.mapper import JSONMapper
+from json_mapper.mapper import JSONMapper, Position, Offset
 from io import StringIO
 import json
 
 CURRENT_DIR = Path(__file__).parent
 
 
-def _get_json_mapper(file_name: Path) -> JSONMapper:
+def _get_json_mapper(file_name: Union[Path, str]) -> JSONMapper:
     with open(CURRENT_DIR / file_name) as f_in:
         io = StringIO(f_in.read())
 
@@ -19,7 +19,7 @@ def _get_json_mapper(file_name: Path) -> JSONMapper:
 def test_mapper_keys():
     mapper = _get_json_mapper("sample_1.json")
 
-    expected_keys = {tuple(), ("food",), ("bird",)}
+    expected_keys = {(), ("food",), ("bird",)}
     actual_keys = mapper.offsets.keys()
     assert actual_keys == expected_keys
 
@@ -27,22 +27,22 @@ def test_mapper_keys():
 def test_root_offset():
     mapper = _get_json_mapper("sample_1.json")
 
-    root = mapper.offsets[tuple()]
-    assert root.start == 0
-    assert root.end == 44
+    actual = mapper.offsets[()]
+    expected = Offset(0, 44)
+    assert actual == expected
 
 
 def test_pie_offset():
     mapper = _get_json_mapper("sample_1.json")
 
     # The value is "pie"
-    food = mapper.offsets[("food",)]
-    assert food.start == 14
-    assert food.end == 19
+    actual = mapper.offsets[("food",)]
+    expected = Offset(14, 19)
+    assert actual == expected
 
 
 def _get_reflexive_tests(file_name: str):
-    mapper = _get_json_mapper(CURRENT_DIR / file_name)
+    mapper = _get_json_mapper(file_name)
 
     for key in mapper.offsets:
         yield mapper, key
@@ -69,3 +69,19 @@ def test_reflexive(mapper: JSONMapper, key: Tuple):
     sub_data = json.loads(json_str)
 
     assert sub_data == expected_value
+
+
+def test_root_positions():
+    mapper = _get_json_mapper("sample_1.json")
+
+    actual_position = mapper.get_position(())
+    expected_position = Position(0, 0, 3, 1)
+    assert actual_position == expected_position
+
+
+def test_pie_positions():
+    mapper = _get_json_mapper("sample_1.json")
+
+    actual_position = mapper.get_position(("food",))
+    expected_position = Position(1, 12, 1, 17)
+    assert actual_position == expected_position

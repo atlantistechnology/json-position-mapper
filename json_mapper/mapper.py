@@ -8,11 +8,24 @@ from functools import cached_property
 import json_stream
 from json_stream.base import TransientStreamingJSONObject, TransientStreamingJSONList
 
+JSONKeyTuple = Tuple
+
 
 @dataclass(frozen=True)
 class Offset:
     start: int
     end: int
+
+
+@dataclass(frozen=True)
+class Position:
+    """The default values in positions are designed to be zero based
+    with non-inclusive ends to match Python's slice mechanics"""
+
+    start_line: int
+    start_col: int
+    end_line: int
+    end_col: int
 
 
 class JSONMapper:
@@ -23,8 +36,23 @@ class JSONMapper:
         self._io = io
 
     @cached_property
-    def offsets(self) -> Dict[Tuple, Offset]:
-        return {key: offset for key, offset in self._scan_json()}
+    def offsets(self) -> Dict[JSONKeyTuple, Offset]:
+        return {key: offset for key, offset in self._scan_json_for_offsets()}
+
+    def get_position(self, key: JSONKeyTuple) -> Position:
+        """Get the position of a given key"""
+
+        offsets = self.offsets[key]
+
+        start_line, start_col = self._get_line_col_for_position(offsets.start)
+        end_line, end_col = self._get_line_col_for_position(offsets.end)
+
+        return Position(
+            start_line=start_line,
+            start_col=start_col,
+            end_line=end_line,
+            end_col=end_col,
+        )
 
     def get_json_data(self) -> Any:
         """Get the referenced JSON object"""
@@ -49,7 +77,7 @@ class JSONMapper:
             line = self._io.readline()
         return out
 
-    def _scan_json(self) -> Iterable[Tuple[Tuple, Offset]]:
+    def _scan_json_for_offsets(self) -> Iterable[Tuple[JSONKeyTuple, Offset]]:
         """Get every tuple key in the file, along with its start and end"""
 
         self._io.seek(0)
@@ -59,7 +87,7 @@ class JSONMapper:
         # strings for objects, or ints for arrays
         current_path: List[Union[None, str, int]] = [None]
 
-        def recurse(node) -> Iterable[Tuple[Tuple, Offset]]:
+        def recurse(node) -> Iterable[Tuple[JSONKeyTuple, Offset]]:
             # Note that file positions are 1 based
             started_at = self._io.tell()
 
@@ -141,14 +169,8 @@ class JSONMapper:
         # list of line break positions as a binary tree and keeps
         # bifurcating the list to run in O(log n) time
 
-        line_no = len(line_breaks)
-        for break_position in reversed(line_breaks):
-            # There are a bunch of off-by-one edge cases around here.
-            # They all cancel out.
+        for i, break_position in enumerate(line_breaks):
+            if break_position > position:
+                return i
 
-            if break_position < position:
-                return line_no
-
-            line_no -= 1
-
-        return line_no
+        return len(line_breaks) - 1
