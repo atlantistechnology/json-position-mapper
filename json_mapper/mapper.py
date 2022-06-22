@@ -137,7 +137,9 @@ class JSONMapper:
         line_number = self._get_line_for_position(position)
         line_offset = self._line_break_positions[line_number]
 
-        col = position - line_offset
+        # We are using slice mechanics where ends are not inclusive,
+        # so we need to increment by 1
+        col = position - line_offset + 1
         return line_number, col
 
     def _get_line_for_position(self, position: int) -> int:
