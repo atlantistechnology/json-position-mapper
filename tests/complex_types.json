@@ -1,0 +1,23 @@
+{
+    "purpose": "To have all the types represented for the reflexive tests",
+    "int": 42,
+    "float": 1.1,
+    "bool": false,
+    "other-bool": true,
+    "nothing": null,
+    "object": {
+        "food": "pie",
+        "name": "Adam",
+        "age": 42
+    },
+    "objects": [
+        {
+            "name": "David",
+            "language": "Python"
+        },
+        {
+            "name": "Mark",
+            "language": "Java"
+        }
+    ]
+}

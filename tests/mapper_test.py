@@ -52,7 +52,7 @@ def _get_reflexive_tests(file_name: str):
         yield mapper, key
 
 
-@pytest.mark.parametrize("mapper,key", _get_reflexive_tests("all_type_test.json"))
+@pytest.mark.parametrize("mapper,key", _get_reflexive_tests("complex_types.json"))
 def test_reflexive(mapper: JSONMapper, key: Tuple):
     """Test that the position offset given by the mapper is exactly
     what is needed to re-create that object"""
