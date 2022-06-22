@@ -4,7 +4,7 @@ on:
 
 jobs:
   black:
-    name: Black
+    name: Code Formatting (black)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +18,7 @@ jobs:
       - run: poetry run black .
   
   mypy:
-    name: Mypy
+    name: Static Analysis (mypy)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,6 +33,7 @@ jobs:
 
   
   pytest:
+    name: Tests (pytest)
     runs-on: ubuntu-latest
     strategy:
       matrix:
