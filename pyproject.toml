@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "json-mapper"
-version = "0.1.0"
+version = "0.0.0"
 description = "Map file-based JSON inputs from the file keys to their locations in the original file"
 authors = ["Adam Peacock <apeacock@atlantistech.com>"]
 license = "MIT"
