@@ -12,11 +12,17 @@ JSONKeyTuple = Tuple
 
 
 class Offset(NamedTuple):
+    """A zero-based set of offsets into a file, which could be used as
+    the parameters in a Python slice to get just this object back"""
+
     start: int
     end: int
 
 
 class EditorPosition(NamedTuple):
+    """The one-based line/column positions for a given key with inclusive starts and
+    ends, which could be used for highlighting in an editor such as VS Code"""
+
     start_line: int
     start_col: int
     end_line: int
@@ -24,8 +30,8 @@ class EditorPosition(NamedTuple):
 
 
 class Position(NamedTuple):
-    """The default values in positions are designed to be zero based
-    with non-inclusive ends to match Python's slice mechanics"""
+    """The zero-based line/column positions for a given key with inclusive starts
+    and non-inclusive ends, which could be used in Python slices"""
 
     start_line: int
     start_col: int
@@ -43,6 +49,9 @@ class Position(NamedTuple):
 
 
 class JSONMapper:
+    """Entry point into the JSON mapper, which can map JSON keys to
+    locations in the source file for slicing or highlighting"""
+
     def __init__(self, io: IO):
         if not io.seekable():
             raise TypeError("Input IO must be seekable")
@@ -51,6 +60,8 @@ class JSONMapper:
 
     @cached_property
     def offsets(self) -> Dict[JSONKeyTuple, Offset]:
+        """The offsets of every key tuple in the source file"""
+
         return {key: offset for key, offset in self._scan_json_for_offsets()}
 
     def get_position(self, key: JSONKeyTuple) -> Position:
