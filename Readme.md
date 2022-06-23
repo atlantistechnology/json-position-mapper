@@ -44,7 +44,10 @@ Sample JSON file
             }
         }
     ]
-}```
+}
+```
+
+Example usage:
 
 ```python
 from io import StringIO
