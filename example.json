@@ -1,0 +1,22 @@
+{
+    "people": [
+        {
+            "name": "Adam",
+            "favoriteFood": "pie",
+            "attributes": {
+                "eyeColor": "orange",
+                "height": "12 foot",
+                "happy": true
+            }
+        },
+        {
+            "name": "David",
+            "favoriteFood": "sushi",
+            "attributes": {
+                "eyeColor": "fuscha",
+                "height": "4 inches",
+                "happy": null
+            }
+        }
+    ]
+}
