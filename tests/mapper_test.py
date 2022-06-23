@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Tuple, Union, NamedTuple, Any
 
 import pytest
-from json_mapper.mapper import JSONMapper, Position, Offset
+from json_mapper.mapper import JSONMapper, Position, Offset, EditorPosition
 from io import StringIO
 import json
 
@@ -100,12 +100,9 @@ def test_pie_positions():
 
 def test_pie_editor_position():
     mapper = _setup_data("sample_1.json").mapper
-    position = mapper.get_position(("food",))
-
-    assert position.editor_start_line == 2
-    assert position.editor_start_col == 13
-    assert position.editor_end_line == 2
-    assert position.editor_end_col == 17
+    actual = mapper.get_position(("food",)).editor
+    expected = EditorPosition(start_line=2, start_col=13, end_line=2, end_col=17)
+    assert actual == expected
 
 
 def test_invalid_json():

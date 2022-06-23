@@ -16,6 +16,13 @@ class Offset(NamedTuple):
     end: int
 
 
+class EditorPosition(NamedTuple):
+    start_line: int
+    start_col: int
+    end_line: int
+    end_col: int
+
+
 class Position(NamedTuple):
     """The default values in positions are designed to be zero based
     with non-inclusive ends to match Python's slice mechanics"""
@@ -26,31 +33,13 @@ class Position(NamedTuple):
     end_col: int
 
     @property
-    def editor_start_line(self) -> int:
-        """One based inclusive start line"""
-
-        return self.start_line + 1
-
-    @property
-    def editor_start_col(self) -> int:
-        """One based inclusive start column"""
-
-        return self.start_col + 1
-
-    @property
-    def editor_end_line(self) -> int:
-        """One based inclusive end line"""
-
-        return self.end_line + 1
-
-    @property
-    def editor_end_col(self) -> int:
-        """One based inclusive end column"""
-
-        # Going from zero based non-inclusive to one based inclusive
-        # inclusive is a noop and thus there is no change.
-        # It is included only for API consistency
-        return self.end_col
+    def editor(self) -> EditorPosition:
+        return EditorPosition(
+            start_line=self.start_line + 1,
+            start_col=self.start_col + 1,
+            end_line=self.end_line + 1,
+            end_col=self.end_col,
+        )
 
 
 class JSONMapper:
