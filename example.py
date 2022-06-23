@@ -15,7 +15,10 @@ print(mapper.offsets[("people", 0, "name")])
 # Output: Offset(start=48, end=54)
 
 # Get the line/column start and end for people.0
+# This is what we would use if we were to use Python to split the file on line and then use slice mechanics
 print(mapper.get_position(("people", 0)))
+# Output: Position(start_line=2, start_col=8, end_line=10, end_col=9)
+
+# This is what we would use to highlight in something like VS Code
 print(mapper.get_position(("people", 0)).editor)
-# Output: Position(start_line=2, start_col=8, end_line=10, end_col=9) <- This is what we would use if we were to use Python to split the file on line and then use slice mechanics
-# Output: EditorPosition(start_line=3, start_col=9, end_line=11, end_col=9) <- This is what we would use to highlight in something like VS Code
+# Output: EditorPosition(start_line=3, start_col=9, end_line=11, end_col=9)
