@@ -38,7 +38,7 @@ Sample JSON file: `example.json`
             "name": "David",
             "favoriteFood": "sushi",
             "attributes": {
-                "eyeColor": "fuscha",
+                "eyeColor": "fuschia",
                 "height": "4 inches",
                 "happy": null
             }
