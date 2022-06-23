@@ -13,8 +13,8 @@ include = [
 ]
 
 readme = "Readme.md"
-homepage = "https://github.com/Hovercross/django-lb-health-check"
-repository = "https://github.com/Hovercross/django-lb-health-check"
+homepage = "https://github.com/atlantistechnology/json-position-mapper"
+repository = "https://github.com/atlantistechnology/json-position-mapper"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
