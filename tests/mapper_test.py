@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Tuple, Union, NamedTuple, Any
 
 import pytest
 from json_mapper.mapper import JSONMapper, Position, Offset
@@ -9,15 +9,26 @@ import json
 CURRENT_DIR = Path(__file__).parent
 
 
-def _get_json_mapper(file_name: Union[Path, str]) -> JSONMapper:
+class SetupData(NamedTuple):
+    io: StringIO
+    mapper: JSONMapper
+    data: Any
+
+
+def _setup_data(file_name: Union[Path, str]) -> SetupData:
     with open(CURRENT_DIR / file_name) as f_in:
         io = StringIO(f_in.read())
 
-    return JSONMapper(io)
+    mapper = JSONMapper(io)
+    io.seek(0)
+    data = json.load(io)
+    io.seek(0)
+
+    return SetupData(io=io, mapper=mapper, data=data)
 
 
 def test_mapper_keys():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
 
     expected_keys = {(), ("food",), ("bird",)}
     actual_keys = mapper.offsets.keys()
@@ -25,7 +36,7 @@ def test_mapper_keys():
 
 
 def test_root_offset():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
 
     actual = mapper.offsets[()]
     expected = Offset(0, 44)
@@ -33,7 +44,7 @@ def test_root_offset():
 
 
 def test_pie_offset():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
 
     # The value is "pie"
     actual = mapper.offsets[("food",)]
@@ -42,14 +53,14 @@ def test_pie_offset():
 
 
 def _get_reflexive_tests(file_name: str):
-    mapper = _get_json_mapper(file_name)
+    setup = _setup_data(file_name)
 
-    for key in mapper.offsets:
-        yield mapper, key
+    for key in setup.mapper.offsets:
+        yield setup, key
 
 
-@pytest.mark.parametrize("mapper,key", _get_reflexive_tests("complex_types.json"))
-def test_reflexive(mapper: JSONMapper, key: Tuple):
+@pytest.mark.parametrize("setup,key", _get_reflexive_tests("complex_types.json"))
+def test_reflexive(setup: SetupData, key: Tuple):
     """Test that the position offset given by the mapper is exactly
     what is needed to re-create that object"""
 
@@ -60,10 +71,10 @@ def test_reflexive(mapper: JSONMapper, key: Tuple):
         key = remaining_path[0]
         return _get_value(node[key], remaining_path[1:])
 
-    json_data = mapper.get_json_data()
-    file_data = mapper.read()
+    json_data = setup.data
+    file_data = setup.io.getvalue()
 
-    position = mapper.offsets[key]
+    position = setup.mapper.offsets[key]
     expected_value = _get_value(json_data, key)
     json_str = file_data[position.start : position.end]
     sub_data = json.loads(json_str)
@@ -72,7 +83,7 @@ def test_reflexive(mapper: JSONMapper, key: Tuple):
 
 
 def test_root_positions():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
 
     actual_position = mapper.get_position(())
     expected_position = Position(0, 0, 3, 1)
@@ -80,7 +91,7 @@ def test_root_positions():
 
 
 def test_pie_positions():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
 
     actual_position = mapper.get_position(("food",))
     expected_position = Position(1, 12, 1, 17)
@@ -88,7 +99,7 @@ def test_pie_positions():
 
 
 def test_pie_editor_position():
-    mapper = _get_json_mapper("sample_1.json")
+    mapper = _setup_data("sample_1.json").mapper
     position = mapper.get_position(("food",))
 
     assert position.editor_start_line == 2
