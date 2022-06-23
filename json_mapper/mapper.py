@@ -47,7 +47,7 @@ class Position(NamedTuple):
     def editor_end_col(self) -> int:
         """One based inclusive end column"""
 
-        # Going from zero based non-inclusive to one based i
+        # Going from zero based non-inclusive to one based inclusive
         # inclusive is a noop and thus there is no change.
         # It is included only for API consistency
         return self.end_col
@@ -78,18 +78,6 @@ class JSONMapper:
             end_line=end_line,
             end_col=end_col,
         )
-
-    def get_json_data(self) -> Any:
-        """Get the referenced JSON object"""
-
-        self._io.seek(0)
-        return json.load(self._io)
-
-    def read(self) -> str:
-        """Get the entire underlying io string, generally for testing"""
-
-        self._io.seek(0)
-        return self._io.read()
 
     @cached_property
     def _line_break_positions(self) -> List[int]:
