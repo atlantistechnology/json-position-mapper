@@ -17,6 +17,12 @@ jobs:
       - run: poetry install
       - name: Build and publish
         run: |
-          poetry version $(git describe --tags --abbrev=0)
+          tag="$(git describe --tags --abbrev=0)"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unable to read version from ${tag}"
+            exit 1
+          fi
+          version="${tag:1}"
+          poetry version $version
           poetry build
           poetry publish --username "__token__" --password "${{secrets.PYPI_TOKEN}}"
